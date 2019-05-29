@@ -9,45 +9,37 @@ from .models import RelationshipTypeModel
 from .gremlin_connect import BaseGremlinClass
 
 # Create your views here.
-class SimpleGremlinView(View):
-    def __init__(self):
-        self.__g = traversal().withRemote(DriverRemoteConnection('ws://192.168.99.100:8182/gremlin', 'g'))
-        pass
-
+class SimpleGremlinView(BaseGremlinClass):
     def get(self, request):
         all_nodes = [
                 {'entityName' : p }
-                for p in self.__g.V().hasLabel('person').values('entityName').toList()
+                for p in self.g.V().hasLabel('person').values('entityName').toList()
                 ]
         return JsonResponse({"nodes" : all_nodes})
 
-class NodeFormClass(View):
+class NodeFormClass(BaseGremlinClass):
     def get(self, request):
         return render(request, 'nodeform.html', {'form' : NodeForm()})
 
     def post(self, request):
         form = NodeForm(request.POST)
         if form.is_valid():
-            g = traversal().withRemote(DriverRemoteConnection('ws://192.168.99.100:8182/gremlin','g'))
-            g.addV('person').property('entityName', form.cleaned_data['entityName']).property('first_name', form.cleaned_data['first_name']).property('last_name', form.cleaned_data['last_name']).next()
+            self.g.addV('person').property('entityName', form.cleaned_data['entityName']).property('first_name', form.cleaned_data['first_name']).property('last_name', form.cleaned_data['last_name']).next()
             resp = { "action" : "create", "node" : { "entityName" : form.cleaned_data['entityName'], "first_name" : form.cleaned_data['first_name'], "last_name" : form.cleaned_data['last_name'] }}
             return JsonResponse(resp)
 
-class RelationshipFormClass(View):
-    def __init__(self):
-        self.__g = traversal().withRemote(DriverRemoteConnection('ws://192.168.99.100:8182/gremlin','g'))
-        pass
+class RelationshipFormClass(BaseGremlinClass):
     def get(self, request):
         return render(request, 'relationshipform.html', {'form' : RelationshipForm()})
     def post(self, request):
         form = RelationshipForm(request.POST)
         if form.is_valid():
-            entityA = self.__g.V().hasLabel('person').has('entityName', form.cleaned_data['entityA']).next()
-            entityB = self.__g.V().hasLabel('person').has('entityName', form.cleaned_data['entityB']).next()
+            entityA = self.g.V().hasLabel('person').has('entityName', form.cleaned_data['entityA']).next()
+            entityB = self.g.V().hasLabel('person').has('entityName', form.cleaned_data['entityB']).next()
             relationship = form.cleaned_data['relationship']
-            reverse = RelationshipTypeModel.objects.get(relationship).reverse
-            self.__g.addE(relationship).from_(entityA).to(entityB).next()
-            self.__g.addE(reverse).from_(entityB).to(entityA).next()
+            reverse = RelationshipTypeModel.objects.get(name=relationship).reverse
+            self.g.addE(relationship).from_(entityA).to(entityB).next()
+            self.g.addE(reverse).from_(entityB).to(entityA).next()
             resp = {
                     "action" : "relationship_create",
                     "relationship" : [{
