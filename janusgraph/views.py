@@ -5,6 +5,7 @@ from gremlin_python.driver.driver_remote_connection import DriverRemoteConnectio
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from .forms import NodeForm, RelationshipForm, NodeInfoForm
+from .models import RelationshipTypeModel
 from .gremlin_connect import BaseGremlinClass
 
 # Create your views here.
@@ -38,21 +39,27 @@ class RelationshipFormClass(View):
         pass
     def get(self, request):
         return render(request, 'relationshipform.html', {'form' : RelationshipForm()})
-
     def post(self, request):
         form = RelationshipForm(request.POST)
         if form.is_valid():
             entityA = self.__g.V().hasLabel('person').has('entityName', form.cleaned_data['entityA']).next()
             entityB = self.__g.V().hasLabel('person').has('entityName', form.cleaned_data['entityB']).next()
             relationship = form.cleaned_data['relationship']
+            reverse = RelationshipTypeModel.objects.get(relationship).reverse
             self.__g.addE(relationship).from_(entityA).to(entityB).next()
+            self.__g.addE(reverse).from_(entityB).to(entityA).next()
             resp = {
                     "action" : "relationship_create",
-                    "relationship" : {
+                    "relationship" : [{
                         "entityA" : form.cleaned_data['entityA'],
                         "relationship" : relationship,
                         "entityB" : form.cleaned_data['entityB']
-                    }
+                    },
+                    {
+                        "entityA" : form.cleaned_data['entityB'],
+                        "relationship" : reverse,
+                        "entityB" : form.cleaned_data['entityA']
+                    }]
             }
             return JsonResponse(resp) 
 
