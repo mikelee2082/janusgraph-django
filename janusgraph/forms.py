@@ -9,3 +9,6 @@ class RelationshipForm(forms.Form):
     entityA = forms.CharField(label='EntityA')
     relationship = forms.CharField(label='Relationship')
     entityB = forms.CharField(label='EntityB')
+
+class NodeInfoForm(forms.Form):
+    entityName = forms.CharField(label='Entity Name')

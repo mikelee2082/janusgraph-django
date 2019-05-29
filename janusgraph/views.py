@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from django.conf import settings
 from gremlin_python.process.anonymous_traversal import traversal
 from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
 from django.http import HttpResponse, JsonResponse
 from django.views import View
-from .forms import NodeForm, RelationshipForm
+from .forms import NodeForm, RelationshipForm, NodeInfoForm
+from .gremlin_connect import BaseGremlinClass
 
 # Create your views here.
 class SimpleGremlinView(View):
@@ -52,4 +54,19 @@ class RelationshipFormClass(View):
                         "entityB" : form.cleaned_data['entityB']
                     }
             }
-            return JsonResponse(resp)
+            return JsonResponse(resp) 
+
+class NodeInformation(BaseGremlinClass):
+    def get(self, request):
+        return render(request, 'nodeinfoform.html', {'form' : NodeInfoForm()})
+
+    def post(self, request):
+        form = NodeInfoForm(request.POST)
+        if form.is_valid():
+            vertex = self.g.V().hasLabel('person').has('entityName', form.cleaned_data['entityName']).next()
+            values = self.g.V(vertex).valueMap().toList()
+            relationships = self.g.V(vertex).outE().toList()
+            connected_objs = [ {"relationship" : r.__dict__.get('label'), "entity" : self.g.V(r.__dict__.get('inV')).values('entityName').next() } for r in relationships ]
+            return JsonResponse({"properties" : values, "relationships" : connected_objs})
+
+
