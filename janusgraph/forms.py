@@ -8,7 +8,7 @@ class NodeForm(forms.Form):
 
 class RelationshipForm(forms.Form):
     entityA = forms.CharField(label='EntityA')
-    relationship = forms.ChoiceField(choices=set([str(s) for s in RelationshipTypeModel.objects.all()]),label='Relationship')
+    relationship = forms.ChoiceField(choices=[(str(s), str(s)) for s in RelationshipTypeModel.objects.all()],label='Relationship')
     entityB = forms.CharField(label='EntityB')
 
 class NodeInfoForm(forms.Form):
