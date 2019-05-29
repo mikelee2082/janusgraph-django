@@ -1,4 +1,5 @@
 from django import forms
+from .models import RelationshipTypeModel
 
 class NodeForm(forms.Form):
     entityName = forms.CharField(label='EntityName', max_length=100)
@@ -7,7 +8,7 @@ class NodeForm(forms.Form):
 
 class RelationshipForm(forms.Form):
     entityA = forms.CharField(label='EntityA')
-    relationship = forms.CharField(label='Relationship')
+    relationship = forms.ChoiceField(choices=set([str(s) for s in RelationshipTypeModel.objects.all()]),label='Relationship')
     entityB = forms.CharField(label='EntityB')
 
 class NodeInfoForm(forms.Form):
