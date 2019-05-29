@@ -1,3 +1,4 @@
 janusgraph/__pycache__
 graph/__pycache__
 db.sqlite3
+janusgraph/migrations
