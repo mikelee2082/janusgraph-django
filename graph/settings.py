@@ -125,4 +125,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-GREMLIN_TRAVERSAL = traversal().withRemote(DriverRemoteConnection('ws://192.168.99.100:8182/gremlin','g'))
+GREMLIN_HOST = 'ws://192.168.99.100:8182/gremlin'
